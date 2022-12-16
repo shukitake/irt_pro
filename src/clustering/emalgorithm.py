@@ -2,14 +2,14 @@ import sys
 import numpy as np
 
 sys.path.append("/Users/shukitakeuchi/irt_pro/src")
+from clustering.optimize_w import Opt_W
 from util.log import LoggerUtil
 from joblib import Parallel, delayed
 from tqdm import tqdm
-from optimize_w import Opt_W
 
 
 class EM_Algo:
-    def __init__(self, U, Y, V, T, N):
+    def __init__(self, U, Y, V, N, T):
         self.U = U
         """Yは初期推定値を使う"""
         self.init_Y = Y
@@ -33,7 +33,7 @@ class EM_Algo:
         return V
 
     def EStep(self, pi, W):
-        self.logger.info("EStep start")
+        # self.logger.info("EStep start")
         # Vの更新
         f = np.array(
             [
@@ -45,21 +45,21 @@ class EM_Algo:
                             for t in range(self.T)
                         ]
                     )
-                    for j in range(self.J)
+                    for n in range(self.N)
                 ]
-                for n in range(self.N)
+                for j in range(self.J)
             ]
         )
         f1 = pi * f
         f2 = np.sum(f1, 1).reshape(-1, 1)
         V = f1 / f2
         V_opt = EM_Algo.convert_V_cluster(self, V)
-        self.logger.info("EStep finish")
+        # self.logger.info("EStep finish")
         # self.logger.info(f"Y:{Y}")
         return V, V_opt
 
     def MStep(self, V):
-        self.logger.info("MStep start")
+        # self.logger.info("MStep start")
         # piの更新
         pi = np.sum(V, axis=0) / self.J
 
@@ -68,8 +68,8 @@ class EM_Algo:
         opt_W.modeling()
         W_opt, obj = opt_W.solve()
         W_opt = np.reshape(W_opt, [self.N, self.T])
-        self.logger.info(f"W optimized ->{W_opt}")
-        self.logger.info("MStep finish")
+        # self.logger.info(f"W optimized ->{W_opt}")
+        # self.logger.info("MStep finish")
         # self.logger.info(f"objective:{obj}")
         return pi, W_opt
 

@@ -5,16 +5,26 @@ from pyomo.environ import *
 
 
 class Opt_W:
-    def __init__(self, U, Y, V, N, T) -> None:
+    def __init__(self, U, init_Y, init_Z, V, N, T) -> None:
         # モデル
         self.solver = "ipopt"
         # 初期設定
         self.U = U
-        self.Y = Y
+        self.init_Y = init_Y
         self.V = V
-        self.I, self.J = np.shape(self.U)
+        self.init_Z = init_Z
         self.N = N
+        self.I, self.J = np.shape(self.U)
         self.T = T
+
+    def cl_list(self, n):
+        cluster_list = []
+        for j in range(self.J):
+            if self.V[j, n] == 1:
+                k = np.argmax(self.init_Z[j, :])
+                cluster_list.append(k + 1)
+        cluster_list.sort()
+        return cluster_list
 
     def modeling(self):
         # 非線形最適化モデル作成（minimize)
@@ -23,34 +33,43 @@ class Opt_W:
         self.model.I = pyo.Set(initialize=range(1, self.I + 1))
         self.model.J = pyo.Set(initialize=range(1, self.J + 1))
         self.model.T = pyo.Set(initialize=range(1, self.T + 1))
-        self.model.N = pyo.Set(initialize=range(1, self.N + 1))
+        self.model.J1 = pyo.Set(initialize=range(1, self.J))
+        self.model.T1 = pyo.Set(initialize=range(1, self.T))
         # 決定変数
-        """0.01から0.99を取るような連続変数W"""
         self.model.W = pyo.Var(
-            self.model.N, self.model.T, domain=pyo.Reals, bounds=(0.01, 0.99)
+            self.model.J, self.model.T, domain=pyo.Reals, bounds=(0.01, 0.99)
         )
         # 制約
         self.model.const = pyo.ConstraintList()
         # 制約式
         # 制約1
-        """単調等質性の制約"""
-        for n in self.model.N:
+        for k in self.model.J:
             for t in self.model.T1:
-                lhs = self.model.W[n, t + 1] - self.model.W[n, t]
+                lhs = self.model.W[k, t + 1] - self.model.W[k, t]
                 self.model.const.add(lhs >= 0)
+        # 制約2
+        for n in range(self.N):
+            cluster_list = Opt_W.cl_list(self, n)
+            for t in self.model.T:
+                for i in range(len(cluster_list) - 1):
+                    lhs = (
+                        self.model.W[cluster_list[i + 1], t]
+                        - self.model.W[cluster_list[i], t]
+                    )
+                    self.model.const.add(lhs >= 0)
         # 目的関数
         expr = sum(
             (
-                self.Y[i - 1, t - 1]
-                * self.V[j - 1, n - 1]
+                self.init_Y[i - 1, t - 1]
+                * self.init_Z[j - 1, k - 1]
                 * (
-                    (self.U[i - 1, j - 1] * log(self.model.W[n, t]))
-                    + ((1 - self.U[i - 1, j - 1]) * log(1 - self.model.W[n, t]))
+                    (self.U[i - 1, j - 1] * log(self.model.W[k, t]))
+                    + ((1 - self.U[i - 1, j - 1]) * log(1 - self.model.W[k, t]))
                 )
             )
             for i in self.model.I
             for j in self.model.J
-            for n in self.model.N
+            for k in self.model.J
             for t in self.model.T
         )
         self.model.Obj = pyo.Objective(expr=expr, sense=pyo.maximize)
