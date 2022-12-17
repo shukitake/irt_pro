@@ -67,7 +67,7 @@ class DMM_EM_Algo:
         opt_W.modeling()
         W_opt, obj = opt_W.solve()
         W_opt = np.reshape(W_opt, [self.J, self.T])
-        self.logger.info(f"W optimized ->{W_opt}")
+        # self.logger.info(f"W optimized ->{W_opt}")
         # self.logger.info("MStep finish")
         # self.logger.info(f"objective:{obj}")
         return pi, W_opt

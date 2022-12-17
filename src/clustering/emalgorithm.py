@@ -4,8 +4,6 @@ import numpy as np
 sys.path.append("/Users/shukitakeuchi/irt_pro/src")
 from clustering.optimize_w import Opt_W
 from util.log import LoggerUtil
-from joblib import Parallel, delayed
-from tqdm import tqdm
 
 
 class EM_Algo:
@@ -50,9 +48,13 @@ class EM_Algo:
                 for j in range(self.J)
             ]
         )
-        f1 = pi * f
+        # self.logger.info(f"f:{f}")
+        f1 = np.multiply(pi, f)
         f2 = np.sum(f1, 1).reshape(-1, 1)
-        V = f1 / f2
+        # self.logger.info(f"f1:{f1}")
+        self.logger.info(f"f2:{f2}")
+        V = np.divide(f1, f2)
+        self.logger.info(f"V:{V}")
         V_opt = EM_Algo.convert_V_cluster(self, V)
         # self.logger.info("EStep finish")
         # self.logger.info(f"Y:{Y}")
@@ -62,6 +64,7 @@ class EM_Algo:
         # self.logger.info("MStep start")
         # piの更新
         pi = np.sum(V, axis=0) / self.J
+        self.logger.info(f"pi{pi}")
 
         # Wの更新
         opt_W = Opt_W(self.U, self.init_Y, V, self.N, self.T)
@@ -80,6 +83,8 @@ class EM_Algo:
         # Vを初期化
         V_opt = self.init_V
         pi, W = EM_Algo.MStep(self, V_opt)
+        # self.logger.info(f"W{W}")
+        # self.logger.info(f"pi{pi}")
         est_V = np.empty((self.J, self.N))
         while np.any(est_V != V_opt):
             est_V = V_opt
