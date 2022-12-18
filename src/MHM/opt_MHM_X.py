@@ -34,5 +34,4 @@ class Opt_MHM_X:
         X_opt = np.concatenate([[sample[0]] for sample in out], axis=0)
         obj = np.concatenate([[sample[1]] for sample in out], axis=0)
         self.logger.info("MHM(X) finish")
-        # self.logger.info(f"X optimized ->{X_opt}")
         return X_opt

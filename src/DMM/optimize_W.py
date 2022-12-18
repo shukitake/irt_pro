@@ -1,7 +1,10 @@
+import sys
 import numpy as np
 import pyomo.environ as pyo
-from pyomo.opt import SolverFactory
 from pyomo.environ import *
+
+sys.path.append("/Users/shukitakeuchi/irt_pro/src")
+from util.log import LoggerUtil
 
 
 class Opt_W:
@@ -16,6 +19,7 @@ class Opt_W:
         self.N = N
         self.I, self.J = np.shape(self.U)
         self.T = T
+        self.logger = LoggerUtil.get_logger(__name__)
 
     def cl_list(self, n):
         cluster_list = []
@@ -50,6 +54,7 @@ class Opt_W:
         # 制約2
         for n in range(self.N):
             cluster_list = Opt_W.cl_list(self, n)
+            self.logger.info(f"cluster_list{cluster_list}")
             for t in self.model.T:
                 for i in range(len(cluster_list) - 1):
                     lhs = (

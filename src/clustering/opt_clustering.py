@@ -1,8 +1,4 @@
-import sys
 import numpy as np
-import pandas as pd
-
-sys.path.append("/Users/shukitakeuchi/irt_pro/src")
 
 from clustering.emalgorithm import EM_Algo
 
@@ -20,4 +16,4 @@ class Opt_clustering:
     def opt(self):
         em_algo = EM_Algo(self.U, self.init_Y, self.V, self.N, self.T)
         W, V = em_algo.repeat_process()
-        return V
+        return W, V

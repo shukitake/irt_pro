@@ -1,6 +1,5 @@
 import numpy as np
 import pyomo.environ as pyo
-from pyomo.opt import SolverFactory
 from pyomo.environ import *
 
 
@@ -55,7 +54,6 @@ class Opt_W:
             for t in self.model.T
         )
         self.model.Obj = pyo.Objective(expr=expr, sense=pyo.maximize)
-        # self.model.pprint()
         return
 
     def solve(self):

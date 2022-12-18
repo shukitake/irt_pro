@@ -5,8 +5,6 @@ sys.path.append("/Users/shukitakeuchi/irt_pro/src")
 
 from DMM.optimize_W import Opt_W
 from util.log import LoggerUtil
-from joblib import Parallel, delayed
-from tqdm import tqdm
 
 
 class DMM_EM_Algo:
@@ -33,7 +31,6 @@ class DMM_EM_Algo:
         return Y
 
     def EStep(self, pi, W, Z):
-        # self.logger.info("EStep start")
         f = np.array(
             [
                 [
@@ -49,16 +46,13 @@ class DMM_EM_Algo:
                 for i in range(self.I)
             ]
         )
-        f1 = pi * f
+        f1 = np.multiply(pi, f)
         f2 = np.sum(f1, 1).reshape(-1, 1)
-        Y = f1 / f2
+        Y = np.divide(f1, f2)
         Y_opt = DMM_EM_Algo.convert_Y_calss(self, Y)
-        # self.logger.info("EStep finish")
-        # self.logger.info(f"Y:{Y_opt}")
         return Y, Y_opt
 
     def MStep(self, Y, Z):
-        # self.logger.info("MStep start")
         # piの更新
         pi = np.sum(Y, axis=0) / self.I
 
@@ -67,19 +61,15 @@ class DMM_EM_Algo:
         opt_W.modeling()
         W_opt, obj = opt_W.solve()
         W_opt = np.reshape(W_opt, [self.J, self.T])
-        # self.logger.info(f"W optimized ->{W_opt}")
-        # self.logger.info("MStep finish")
-        # self.logger.info(f"objective:{obj}")
         return pi, W_opt
 
     def repeat_process(self, Z):
         # emstep
-        self.logger.info("emstep start")
         # 初期ステップ -> MStep
         i = 1
         # Yを初期化
         Y_opt = self.init_Y
-        # self.logger.info("first step")
+        self.logger.info("first step")
         pi, W = DMM_EM_Algo.MStep(self, Y_opt, Z)
         est_Y = np.empty((self.I, self.T))
         while np.any(est_Y != Y_opt):
@@ -90,9 +80,9 @@ class DMM_EM_Algo:
             # EStep
             Y, Y_opt = DMM_EM_Algo.EStep(self, pi, W, Z)
             # MStep
-            pi, W = DMM_EM_Algo.MStep(self, Y_opt, Z)
-            # 収束しない時、50回で終了させる
-            if i == 3:
+            pi, W = DMM_EM_Algo.MStep(self, Y, Z)
+            # 収束しない時、20回で終了させる
+            if i == 20:
                 return W, Y_opt
         self.logger.info("emstep finish")
         return W, Y_opt
