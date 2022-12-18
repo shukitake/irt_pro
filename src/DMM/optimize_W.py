@@ -27,6 +27,7 @@ class Opt_W:
             if self.V[j, n] == 1:
                 k = np.argmax(self.init_Z[j, :])
                 cluster_list.append(k + 1)
+                cluster_list.append(j)
         cluster_list.sort()
         return cluster_list
 
@@ -54,7 +55,6 @@ class Opt_W:
         # 制約2
         for n in range(self.N):
             cluster_list = Opt_W.cl_list(self, n)
-            self.logger.info(f"cluster_list{cluster_list}")
             for t in self.model.T:
                 for i in range(len(cluster_list) - 1):
                     lhs = (

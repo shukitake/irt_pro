@@ -4,10 +4,11 @@ import numpy as np
 sys.path.append("/Users/shukitakeuchi/irt_pro/src")
 
 from MHM.opt_MHM_X import Opt_MHM_X
+from MHM.heuristic_algorithm import Heu_MHM_Algo
 from clustering.opt_clustering import Opt_clustering
 from DMM.optimize_Z import Opt_Z
 from clustering.initlize_v import Opt_Init_V
-from DMM.opt_emalgorithm import DMM_EM_Algo
+from DMM.opt_emalgo import DMM_EM_Algo
 from util.log import LoggerUtil
 from util.data_handling import data_handle
 from util.estimation_accuracy import est_accuracy
@@ -31,6 +32,9 @@ def main(T, N):
     opt_MHM_X = Opt_MHM_X(U, init_Y, T)
     X_opt = opt_MHM_X.opt()
 
+    """heu_mhm_algo = Heu_MHM_Algo(U, init_Y, T)
+    X_opt, init_Y = heu_mhm_algo.repeat_process(init_Y)"""
+
     # 難易度行列推定
     logger.info("estimation Z")
     opt_Z = Opt_Z(U, T)
@@ -40,23 +44,19 @@ def main(T, N):
     """クラスター数に応じて上から分割"""
     opt_init_V = Opt_Init_V(U, N, T)
     init_V = opt_init_V.initialize_V(init_Z)
-    rng = np.random.default_rng(0)
-    for j in range(J):
-        rng.shuffle(init_V[j])
 
     # クラスタリング
     logger.info("clustering")
     """初期推定値VとしてMHMの順序行列を用いる"""
     opt_cl = Opt_clustering(U, init_Y, init_V, N, T)
     W_opt, V_opt = opt_cl.opt()
-    logger.info(f"V_opt{V_opt}")
     data_visualization.cl_icc_show(W_opt, V_opt, J, N, T)
 
     # DMM
     """未定クラスターでの分割"""
     logger.info("DMM(W,Y) start")
     opt_DMM = DMM_EM_Algo(U, init_Y, init_Z, V_opt, N, T)
-    W_opt, Y_opt = opt_DMM.repeat_process(init_Z)
+    W_opt, Y_opt = opt_DMM.repeat_process()
     T_est = est_accuracy.show_class(Y_opt)
     rsme_class = est_accuracy.rsme_class(T_true, T_est)
     logger.info(f"rsme_class:{rsme_class}")
