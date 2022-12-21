@@ -1,5 +1,4 @@
 import sys
-import numpy as np
 
 sys.path.append("/Users/shukitakeuchi/irt_pro/src")
 
@@ -18,14 +17,16 @@ from util.data_visualization import data_visualization
 def main(T, N):
     logger = LoggerUtil.get_logger(__name__)
     # パスの指定
-    indpath = "/Users/shukitakeuchi/Library/Mobile Documents/com~apple~CloudDocs/研究/項目反応理論/data/data0/30*100"
+    indpath = "/Users/shukitakeuchi/Library/Mobile Documents/com~apple~CloudDocs/研究/項目反応理論/data/data100/10*100"
     # 実験の設定
     T = T
     N = N
     # データを読み込む
-    U_df, Y_df, T_true_df = data_handle.pandas_read(indpath)
+    U_df, Y_df, T_true_df, icc_true_df = data_handle.pandas_read(indpath)
     # nparrayに変換
-    U, init_Y, T_true, I, J = data_handle.df_to_array(U_df, Y_df, T_true_df)
+    U, init_Y, T_true, icc_true, I, J = data_handle.df_to_array(
+        U_df, Y_df, T_true_df, icc_true_df
+    )
 
     # 初期値Yを所与としてMHMについてXを解く
     """難易度行列を取得"""
@@ -50,7 +51,7 @@ def main(T, N):
     """初期推定値VとしてMHMの順序行列を用いる"""
     opt_cl = Opt_clustering(U, init_Y, init_V, N, T)
     W_opt, V_opt = opt_cl.opt()
-    data_visualization.cl_icc_show(W_opt, V_opt, J, N, T)
+    # data_visualization.cl_icc_show(W_opt, V_opt, J, N, T)
 
     # DMM
     """未定クラスターでの分割"""
@@ -58,15 +59,18 @@ def main(T, N):
     opt_DMM = DMM_EM_Algo(U, init_Y, init_Z, V_opt, N, T)
     W_opt, Y_opt = opt_DMM.repeat_process()
     T_est = est_accuracy.show_class(Y_opt)
-    rsme_class = est_accuracy.rsme_class(T_true, T_est)
-    logger.info(f"rsme_class:{rsme_class}")
-    data_visualization.cluster_icc(W_opt, init_Z, V_opt, J, N, T)
+    # 精度
+    rmse_class = est_accuracy.rmse_class(T_true, T_est)
+    logger.info(f"rmse_class:{rmse_class}")
+    rmse_icc = est_accuracy.rmse_icc(icc_true, init_Z, W_opt)
+    logger.info(f"rmse_icc:{rmse_icc}")
+    # data_visualization.cluster_icc(W_opt, init_Z, V_opt, J, N, T)
     return W_opt, Y_opt, init_Z
 
 
 if __name__ == "__main__":
     T = 10
-    N = 3
-    J = 30
+    N = 1
+    J = 10
     W, Y, Z = main(T, N)
-    #   data_visualization.DMM_icc_show(W, Z, J, T)
+    # data_visualization.DMM_icc_show(W, Z, J, T)

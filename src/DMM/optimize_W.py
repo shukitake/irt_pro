@@ -27,7 +27,6 @@ class Opt_W:
             if self.V[j, n] == 1:
                 k = np.argmax(self.init_Z[j, :])
                 cluster_list.append(k + 1)
-                cluster_list.append(j)
         cluster_list.sort()
         return cluster_list
 
