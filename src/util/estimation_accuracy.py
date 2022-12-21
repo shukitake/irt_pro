@@ -26,5 +26,6 @@ class est_accuracy:
                 for t in range(T)
             )
             / J
+            * T
         )
         return rmse
