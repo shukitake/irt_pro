@@ -34,6 +34,14 @@ class DMM_EM_Algo:
             Y[i, index[i]] = 1
         return Y
 
+    def cl_list(self, n):
+        cluster_list = []
+        for j in range(self.J):
+            if self.V[j, n] == 1:
+                k = np.argmax(self.Z[j, :])
+                cluster_list.append(k)
+        return cluster_list
+
     def EStep(self, pi, W):
         f = np.array(
             [
@@ -61,11 +69,23 @@ class DMM_EM_Algo:
         pi = np.sum(Y, axis=0) / self.I
 
         # Wの更新
-        opt_W = Opt_W(self.U, self.init_Y, self.Z, self.V, self.N, self.T)
-        opt_W.modeling()
-        W_opt, obj = opt_W.solve()
-        W_opt = np.reshape(W_opt, [self.J, self.T])
-        return pi, W_opt
+        tmp_W = np.zeros((self.J, self.T))
+        for n in range(self.N):
+            cluster_list = DMM_EM_Algo.cl_list(self, n)
+            num_item = len(cluster_list)
+            tmp_Z = np.zeros((num_item, num_item))
+            dif_list = np.argsort(cluster_list)
+            for j in range(num_item):
+                tmp_Z[dif_list[j], j] = 1
+            opt_W = Opt_W(self.U, self.init_Y, tmp_Z, self.T)
+            opt_W.modeling()
+            W_opt, obj = opt_W.solve()
+            W_opt = np.reshape(W_opt, [num_item, self.T])
+            m = 0
+            for k in dif_list:
+                tmp_W[cluster_list[k], :] = W_opt[m, :]
+                m += 1
+        return pi, tmp_W
 
     def repeat_process(self):
         # 初期ステップ -> MStep

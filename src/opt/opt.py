@@ -18,7 +18,7 @@ from util.data_visualization import data_visualization
 def main(T, N):
     logger = LoggerUtil.get_logger(__name__)
     # パスの指定
-    indpath = "/Users/shukitakeuchi/Library/Mobile Documents/com~apple~CloudDocs/研究/項目反応理論/data/data0/10*100"
+    indpath = "/Users/shukitakeuchi/Library/Mobile Documents/com~apple~CloudDocs/研究/項目反応理論/data/data0/30*100"
     # 実験の設定
     T = T
     N = N
