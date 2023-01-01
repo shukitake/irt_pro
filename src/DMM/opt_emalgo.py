@@ -66,20 +66,37 @@ class DMM_EM_Algo:
         Y_opt = DMM_EM_Algo.convert_Y_calss(self, Y)
         return Y, Y_opt
 
+    def parallel(self, n):
+        cluster_list, item_list = DMM_EM_Algo.cl_list(self, n)
+        num_item = len(cluster_list)
+        tmp_Z = np.zeros((num_item, num_item))
+        tmp_U = self.U[:, item_list]
+        dif_list = np.argsort(cluster_list)
+        for j in range(num_item):
+            tmp_Z[dif_list[j], j] = 1
+        opt_W = Opt_W(tmp_U, self.init_Y, tmp_Z, self.T)
+        opt_W.modeling()
+        W_opt, obj = opt_W.solve()
+        W_opt = np.reshape(W_opt, [num_item, self.T])
+        return W_opt, obj, dif_list, cluster_list
+
     def MStep(self, Y):
         # piの更新
         pi = np.sum(Y, axis=0) / self.I
 
         # Wの更新
-        tmp_W = np.zeros((self.J, self.T))
+        """tmp_W = np.zeros((self.J, self.T))
         for n in range(self.N):
             cluster_list, item_list = DMM_EM_Algo.cl_list(self, n)
+            self.logger.info(f"cluster_list{cluster_list}")
             num_item = len(cluster_list)
             tmp_Z = np.zeros((num_item, num_item))
             tmp_U = self.U[:, item_list]
             dif_list = np.argsort(cluster_list)
+            self.logger.info(dif_list)
             for j in range(num_item):
                 tmp_Z[dif_list[j], j] = 1
+            self.logger.info(f"{tmp_Z}")
             opt_W = Opt_W(tmp_U, self.init_Y, tmp_Z, self.T)
             opt_W.modeling()
             W_opt, obj = opt_W.solve()
@@ -88,6 +105,21 @@ class DMM_EM_Algo:
             for k in dif_list:
                 tmp_W[cluster_list[k], :] = W_opt[m, :]
                 m += 1
+        self.logger.info(f"tmp_W:{tmp_W}")"""
+
+        tmp_W = np.zeros((self.J, self.T))
+        with LoggerUtil.tqdm_joblib(self.N):
+            out = Parallel(n_jobs=-1, verbose=0)(
+                delayed(DMM_EM_Algo.parallel)(self, n) for n in range(self.N)
+            )
+        for m in range(self.N):
+            W_opt = out[m][0]
+            dif_list = out[m][2]
+            cluster_list = out[m][3]
+            j = 0
+            for k in dif_list:
+                tmp_W[cluster_list[k]] = W_opt[j]
+                j += 1
         return pi, tmp_W
 
     def repeat_process(self):
