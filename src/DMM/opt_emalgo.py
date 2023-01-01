@@ -35,7 +35,6 @@ class DMM_EM_Algo:
         return Y
 
     def EStep(self, pi, W):
-        self.logger("1")
         f = np.array(
             [
                 [
@@ -55,7 +54,6 @@ class DMM_EM_Algo:
         f2 = np.sum(f1, 1).reshape(-1, 1)
         Y = np.divide(f1, f2)
         Y_opt = DMM_EM_Algo.convert_Y_calss(self, Y)
-        self.logger("1")
         return Y, Y_opt
 
     def MStep(self, Y):
