@@ -37,9 +37,8 @@ class data_visualization:
     def cl_icc_show(cls, W, V, J, N, T):
         x = np.arange(1, 11)
         for n in range(N):
-            y = [sum(W[n, t] * V[j, n] for j in range(J)) for t in range(T)]
+            y = [W[n, t] for t in range(T)]
             plt.plot(x, y, label=n + 1)
-
         plt.title("clustering ICC")
         plt.xlabel("latent abilities")
         plt.ylabel("probarility of correct answer")

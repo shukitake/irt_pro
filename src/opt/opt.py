@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 
 sys.path.append("/Users/shukitakeuchi/irt_pro/src")
 
@@ -17,7 +18,7 @@ from util.data_visualization import data_visualization
 def main(T, N):
     logger = LoggerUtil.get_logger(__name__)
     # パスの指定
-    indpath = "/Users/shukitakeuchi/Library/Mobile Documents/com~apple~CloudDocs/研究/項目反応理論/data/data0/10*100"
+    indpath = "/Users/shukitakeuchi/Library/Mobile Documents/com~apple~CloudDocs/研究/項目反応理論/data/data0/30*300"
     # 実験の設定
     T = T
     N = N
@@ -68,9 +69,16 @@ def main(T, N):
     return W_opt, Y_opt, init_Z
 
 
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     T = 10
     N = 1
-    J = 10
-    W, Y, Z = main(T, N)
-    # data_visualization.DMM_icc_show(W, Z, J, T)
+    J = 30
+    W, Y, Z = main(T, N)"""
+
+if __name__ == "__main__":
+    for n in [1, 3, 5, 10, 30]:
+        T = 10
+        N = n
+        J = 30
+        W, Y, Z = main(T, N)
+        # data_visualization.DMM_icc_show(W, Z, J, T)

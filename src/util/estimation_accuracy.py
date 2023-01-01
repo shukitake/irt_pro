@@ -16,16 +16,29 @@ class est_accuracy:
         return rmse
 
     @classmethod
-    def rmse_icc(cls, icc_true, Z, W):
-        J, T = np.shape(W)
-        icc_est = np.array([W[k, :] * Z[:, k] for k in range(J)])
+    def rmse_2plicc(cls, icc_true, X):
+        J, T = np.shape(X)
+        icc_est = X
         rmse = np.sqrt(
             np.sum(
                 np.square(icc_true[j, t] - icc_est[j, t])
                 for j in range(J)
                 for t in range(T)
             )
-            / J
-            * T
+            / (J * T)
+        )
+        return rmse
+
+    @classmethod
+    def rmse_icc(cls, icc_true, Z, W):
+        J, T = np.shape(W)
+        icc_est = np.dot(Z, W)
+        rmse = np.sqrt(
+            np.sum(
+                np.square(icc_true[j, t] - icc_est[j, t])
+                for j in range(J)
+                for t in range(T)
+            )
+            / (J * T)
         )
         return rmse
