@@ -54,7 +54,6 @@ def main(T, N):
     # data_visualization.cl_icc_show(W_opt, V_opt, J, N, T)
 
     # DMM
-    """未定クラスターでの分割"""
     logger.info("DMM(W,Y) start")
     opt_DMM = DMM_EM_Algo(U, init_Y, init_Z, V_opt, N, T)
     W_opt, Y_opt = opt_DMM.repeat_process()
