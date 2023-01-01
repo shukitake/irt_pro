@@ -36,11 +36,13 @@ class DMM_EM_Algo:
 
     def cl_list(self, n):
         cluster_list = []
+        item_list = []
         for j in range(self.J):
             if self.V[j, n] == 1:
                 k = np.argmax(self.Z[j, :])
                 cluster_list.append(k)
-        return cluster_list
+                item_list.append(j)
+        return cluster_list, item_list
 
     def EStep(self, pi, W):
         f = np.array(
@@ -71,13 +73,14 @@ class DMM_EM_Algo:
         # Wの更新
         tmp_W = np.zeros((self.J, self.T))
         for n in range(self.N):
-            cluster_list = DMM_EM_Algo.cl_list(self, n)
+            cluster_list, item_list = DMM_EM_Algo.cl_list(self, n)
             num_item = len(cluster_list)
             tmp_Z = np.zeros((num_item, num_item))
+            tmp_U = self.U[:, item_list]
             dif_list = np.argsort(cluster_list)
             for j in range(num_item):
                 tmp_Z[dif_list[j], j] = 1
-            opt_W = Opt_W(self.U, self.init_Y, tmp_Z, self.T)
+            opt_W = Opt_W(tmp_U, self.init_Y, tmp_Z, self.T)
             opt_W.modeling()
             W_opt, obj = opt_W.solve()
             W_opt = np.reshape(W_opt, [num_item, self.T])

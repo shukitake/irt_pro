@@ -76,7 +76,7 @@ def main(T, N):
     W, Y, Z = main(T, N)"""
 
 if __name__ == "__main__":
-    for n in [1, 3, 5, 10, 30]:
+    for n in [15]:
         T = 10
         N = n
         J = 30
