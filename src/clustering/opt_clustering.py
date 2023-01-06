@@ -14,6 +14,11 @@ class Opt_clustering:
         self.I, self.J = np.shape(self.U)
 
     def opt(self):
-        em_algo = EM_Algo(self.U, self.init_Y, self.V, self.N, self.T)
-        W, V = em_algo.repeat_process()
-        return W, V
+        if self.N == self.J:
+            V = np.identity(self.J)
+        elif self.N == 1:
+            V = np.ones((self.J, 1))
+        else:
+            em_algo = EM_Algo(self.U, self.init_Y, self.V, self.N, self.T)
+            W, V = em_algo.repeat_process()
+        return V

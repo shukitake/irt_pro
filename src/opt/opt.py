@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy as np
 
@@ -15,10 +16,11 @@ from util.estimation_accuracy import est_accuracy
 from util.data_visualization import data_visualization
 
 
-def main(T, N):
+def main(T, N, data):
     logger = LoggerUtil.get_logger(__name__)
     # パスの指定
-    indpath = "/Users/shukitakeuchi/Library/Mobile Documents/com~apple~CloudDocs/研究/項目反応理論/data/data0/30*100"
+    indpath = "/Users/shukitakeuchi/Library/Mobile Documents/com~apple~CloudDocs/研究/項目反応理論/data"
+    indpath = os.path.join(indpath, data)
     # 実験の設定
     T = T
     N = N
@@ -51,7 +53,7 @@ def main(T, N):
     logger.info("clustering")
     """初期推定値VとしてMHMの順序行列を用いる"""
     opt_cl = Opt_clustering(U, init_Y, init_V, N, T)
-    W_opt, V_opt = opt_cl.opt()
+    V_opt = opt_cl.opt()
     # data_visualization.cl_icc_show(W_opt, V_opt, J, N, T)
 
     # DMM
@@ -65,19 +67,24 @@ def main(T, N):
     rmse_icc = est_accuracy.rmse_icc(icc_true, init_Z, W_opt)
     logger.info(f"rmse_icc:{rmse_icc}")
     # data_visualization.cluster_icc(W_opt, init_Z, V_opt, J, N, T)
-    return W_opt, Y_opt, init_Z
+    return W_opt, Y_opt, init_Z, rmse_class, rmse_icc
 
-
-"""if __name__ == "__main__":
-    T = 10
-    N = 1
-    J = 30
-    W, Y, Z = main(T, N)"""
 
 if __name__ == "__main__":
-    for n in [1, 3, 5, 10, 30]:
-        T = 10
-        N = n
-        J = 10
-        W, Y, Z = main(T, N)
-        # data_visualization.DMM_icc_show(W, Z, J, T)
+    for num_item in [60]:
+        for num_user in [300]:
+            for ratio in [20, 50]:
+                for seed in range(10):
+                    result = np.empty((0, 3))
+                    outdpath = "/Users/shukitakeuchi/Library/Mobile Documents/com~apple~CloudDocs/研究/項目反応理論/data/"
+                    for n in [num_item, 10, 5, 3, 1]:
+                        data = os.path.join(
+                            f"data{seed}", f"{num_item}*{num_user}*{ratio}"
+                        )
+                        T = 10
+                        N = n
+                        W, Y, Z, rmse_class, rmse_icc = main(T, N, data)
+                        # data_visualization.DMM_icc_show(W, Z, J, T)
+                        result = np.vstack([result, [n, rmse_class, rmse_icc]])
+                    outdpath = os.path.join(outdpath, data, "output.csv")
+                    np.savetxt(outdpath, result, delimiter=",", fmt="%.5f")

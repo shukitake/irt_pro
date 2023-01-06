@@ -81,8 +81,8 @@ class EM_Algo:
             V, V_opt = EM_Algo.EStep(self, pi, W)
             # MStep
             pi, W = EM_Algo.MStep(self, V)
-            # 収束しない時、20回で終了させる
-            if i == 20:
+            # 収束しない時、30回で終了させる
+            if i == 30:
                 return W, V_opt
         self.logger.info("finish")
         return W, V_opt

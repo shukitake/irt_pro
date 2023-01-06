@@ -87,7 +87,7 @@ class Heu_MHM_Algo:
             self.logger.info(f"{i}th step")
             X_opt, Y_opt = Heu_MHM_Algo.process(self, best_Y)
             best_Y = Y_opt
-            # 収束しない時、20回で終了させる
-            if i == 20:
+            # 収束しない時、30回で終了させる
+            if i == 30:
                 return X_opt, Y_opt
         return X_opt, Y_opt
